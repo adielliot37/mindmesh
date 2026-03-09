@@ -73,6 +73,43 @@ export class ManifestManager {
     };
   }
 
+  async removeEntries(
+    manifest: DomainManifest,
+    cidsToRemove: string[]
+  ): Promise<DomainManifest> {
+    const removeSet = new Set(cidsToRemove);
+    const updated: DomainManifest = {
+      ...manifest,
+      updated_at: new Date().toISOString(),
+      fragments: manifest.fragments.filter((f) => !removeSet.has(f.cid)),
+    };
+
+    const data = new TextEncoder().encode(JSON.stringify(updated));
+    const newCid = await uploadBlob(this.client, data);
+
+    updated.manifest_cid = newCid;
+    this.manifestCache.set(newCid, updated);
+
+    log.info(
+      { domain: manifest.domain, removed: cidsToRemove.length, cid: newCid },
+      "entries removed from manifest"
+    );
+
+    return updated;
+  }
+
+  async findByCid(domain: string, manifestCid: string, targetCid: string): Promise<ManifestEntry | undefined> {
+    const manifest = await this.getManifest(domain, manifestCid);
+    return manifest.fragments.find((f) => f.cid === targetCid);
+  }
+
+  async findByTags(domain: string, manifestCid: string, tags: string[]): Promise<ManifestEntry[]> {
+    const manifest = await this.getManifest(domain, manifestCid);
+    return manifest.fragments.filter((f) =>
+      tags.some((t) => f.tags.includes(t))
+    );
+  }
+
   clearCache(): void {
     this.manifestCache.clear();
   }

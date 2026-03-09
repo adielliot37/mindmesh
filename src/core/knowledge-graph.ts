@@ -198,6 +198,35 @@ export class KnowledgeGraph {
     }));
   }
 
+  async removeFragments(
+    agentDid: string,
+    domain: string,
+    cids: string[]
+  ): Promise<{ removed: number; manifest_cid: string }> {
+    this.ensureInitialized();
+
+    if (!this.delegationManager.canWrite(agentDid, domain)) {
+      throw new Error(`agent ${agentDid} lacks write access to ${domain}`);
+    }
+
+    const domainRecord = this.domainManager.getDomain(domain);
+    if (!domainRecord?.manifest_cid) {
+      throw new Error(`domain ${domain} has no manifest`);
+    }
+
+    const manifest = await this.manifestManager.getManifest(
+      domain,
+      domainRecord.manifest_cid
+    );
+
+    const updated = await this.manifestManager.removeEntries(manifest, cids);
+    this.domainManager.updateManifestCid(domain, updated.manifest_cid!);
+
+    log.info({ domain, removed: cids.length }, "fragments removed");
+
+    return { removed: cids.length, manifest_cid: updated.manifest_cid! };
+  }
+
   getDelegationManager(): DelegationManager {
     return this.delegationManager;
   }

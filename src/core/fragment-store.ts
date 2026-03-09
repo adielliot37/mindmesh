@@ -35,6 +35,20 @@ export class FragmentStore {
     return Promise.all(cids.map((cid) => this.retrieve(cid)));
   }
 
+  async retrieveMultiple(cids: string[]): Promise<Map<string, KnowledgeFragment>> {
+    const results = new Map<string, KnowledgeFragment>();
+    const fetches = cids.map(async (cid) => {
+      try {
+        const fragment = await this.retrieve(cid);
+        results.set(cid, fragment);
+      } catch (err) {
+        log.warn({ cid, error: (err as Error).message }, "failed to retrieve fragment");
+      }
+    });
+    await Promise.all(fetches);
+    return results;
+  }
+
   createFragment(
     domain: string,
     content: string,

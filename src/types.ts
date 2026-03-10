@@ -101,3 +101,22 @@ export interface SearchRequest {
   tags?: string[];
   since?: string;
 }
+
+export interface BatchSearchRequest {
+  queries: SearchRequest[];
+  merge_strategy?: "interleave" | "concat";
+}
+
+export interface BatchSearchResult {
+  results: Record<string, SearchResult[]>;
+  total_queries: number;
+  total_results: number;
+}
+
+export interface DomainStats {
+  name: string;
+  fragment_count: number;
+  last_updated: string;
+  manifest_cid: string;
+  total_tags: string[];
+}

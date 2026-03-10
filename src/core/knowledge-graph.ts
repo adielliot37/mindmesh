@@ -1,4 +1,4 @@
-import { KnowledgeGraphConfig, SearchRequest, SearchResult, IngestResult, DomainInfo } from "../types.js";
+import { KnowledgeGraphConfig, SearchRequest, SearchResult, IngestResult, DomainInfo, BatchSearchRequest, BatchSearchResult, DomainStats } from "../types.js";
 import { FragmentStore } from "./fragment-store.js";
 import { ManifestManager } from "./manifest-manager.js";
 import { DomainManager } from "./domain-manager.js";
@@ -196,6 +196,64 @@ export class KnowledgeGraph {
         d.name
       ),
     }));
+  }
+
+  async batchSearch(
+    agentDid: string,
+    request: BatchSearchRequest
+  ): Promise<BatchSearchResult> {
+    this.ensureInitialized();
+
+    const results: Record<string, SearchResult[]> = {};
+    let totalResults = 0;
+
+    const searches = request.queries.map(async (query, i) => {
+      const key = query.query || `query_${i}`;
+      const searchResults = await this.search(agentDid, query);
+      results[key] = searchResults;
+      totalResults += searchResults.length;
+    });
+
+    await Promise.all(searches);
+
+    return {
+      results,
+      total_queries: request.queries.length,
+      total_results: totalResults,
+    };
+  }
+
+  async getDomainStats(agentDid: string, domain: string): Promise<DomainStats> {
+    this.ensureInitialized();
+
+    if (!this.delegationManager.canAccess(agentDid, domain)) {
+      throw new Error(`agent ${agentDid} cannot access ${domain}`);
+    }
+
+    const domainRecord = this.domainManager.getDomain(domain);
+    if (!domainRecord) throw new Error(`unknown domain: ${domain}`);
+
+    const manifestCid = domainRecord.manifest_cid || "";
+    let fragmentCount = 0;
+    let lastUpdated = "";
+    const allTags = new Set<string>();
+
+    if (manifestCid) {
+      const manifest = await this.manifestManager.getManifest(domain, manifestCid);
+      fragmentCount = manifest.fragments.length;
+      lastUpdated = manifest.updated_at;
+      for (const entry of manifest.fragments) {
+        entry.tags.forEach((t) => allTags.add(t));
+      }
+    }
+
+    return {
+      name: domain,
+      fragment_count: fragmentCount,
+      last_updated: lastUpdated,
+      manifest_cid: manifestCid,
+      total_tags: Array.from(allTags),
+    };
   }
 
   async removeFragments(

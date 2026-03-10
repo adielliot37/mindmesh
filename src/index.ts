@@ -21,6 +21,9 @@ export type {
   DomainInfo,
   IngestResult,
   SearchRequest,
+  BatchSearchRequest,
+  BatchSearchResult,
+  DomainStats,
 } from "./types.js";
 export type { EmbeddingProvider } from "./embeddings/provider.js";
 export type { Chunker, ChunkerConfig } from "./chunking/chunker.js";

@@ -1,0 +1,38 @@
+{
+  "name": "@storacha/agent-knowledge",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "agent-knowledge-server": "dist/mcp/server.js",
+    "agent-knowledge-setup": "dist/scripts/setup-domains.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/mcp/server.ts",
+    "test": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vitest run tests/e2e",
+    "lint": "tsc --noEmit",
+    "setup": "tsx src/scripts/setup-domains.ts",
+    "generate-delegations": "tsx src/scripts/generate-delegations.ts",
+    "seed": "tsx src/scripts/seed-knowledge.ts"
+  },
+  "dependencies": {
+    "@storacha/client": "latest",
+    "@ipld/dag-ucan": "latest",
+    "@modelcontextprotocol/sdk": "latest",
+    "openai": "^4.0.0",
+    "tiktoken": "^1.0.0",
+    "zod": "^3.22.0",
+    "pino": "^8.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.0.0",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0"
+  }
+}

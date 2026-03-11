@@ -6,8 +6,31 @@ import { createChildLogger } from "./logger.js";
 
 const log = createChildLogger("storacha-client");
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 1000;
+export interface RetryConfig {
+  maxRetries: number;
+  baseDelayMs: number;
+  maxDelayMs: number;
+  backoffMultiplier: number;
+}
+
+const DEFAULT_RETRY: RetryConfig = {
+  maxRetries: 3,
+  baseDelayMs: 1000,
+  maxDelayMs: 30000,
+  backoffMultiplier: 2,
+};
+
+let retryConfig: RetryConfig = { ...DEFAULT_RETRY };
+
+export function setRetryConfig(config: Partial<RetryConfig>): void {
+  retryConfig = { ...retryConfig, ...config };
+}
+
+function getDelay(attempt: number): number {
+  const delay = retryConfig.baseDelayMs * Math.pow(retryConfig.backoffMultiplier, attempt);
+  const jitter = delay * 0.1 * Math.random();
+  return Math.min(delay + jitter, retryConfig.maxDelayMs);
+}
 
 export async function createStorachaClient(
   privateKey: string,
@@ -31,7 +54,7 @@ export async function uploadBlob(
 ): Promise<string> {
   let lastError: Error | null = null;
 
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt < retryConfig.maxRetries; attempt++) {
     try {
       const cid = await client.uploadFile(
         new Blob([data], { type: "application/json" })
@@ -40,18 +63,18 @@ export async function uploadBlob(
     } catch (err) {
       lastError = err as Error;
       log.warn({ attempt, error: lastError.message }, "upload failed, retrying");
-      await sleep(RETRY_DELAY_MS * (attempt + 1));
+      await sleep(getDelay(attempt));
     }
   }
 
-  throw new Error(`upload failed after ${MAX_RETRIES} attempts: ${lastError?.message}`);
+  throw new Error(`upload failed after ${retryConfig.maxRetries} attempts: ${lastError?.message}`);
 }
 
 export async function fetchByCid<T>(cid: string): Promise<T> {
   const url = `https://${cid}.ipfs.w3s.link`;
   let lastError: Error | null = null;
 
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt < retryConfig.maxRetries; attempt++) {
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
@@ -59,11 +82,11 @@ export async function fetchByCid<T>(cid: string): Promise<T> {
     } catch (err) {
       lastError = err as Error;
       log.warn({ attempt, cid, error: lastError.message }, "fetch failed, retrying");
-      await sleep(RETRY_DELAY_MS * (attempt + 1));
+      await sleep(getDelay(attempt));
     }
   }
 
-  throw new Error(`fetch ${cid} failed after ${MAX_RETRIES} attempts: ${lastError?.message}`);
+  throw new Error(`fetch ${cid} failed after ${retryConfig.maxRetries} attempts: ${lastError?.message}`);
 }
 
 function sleep(ms: number): Promise<void> {

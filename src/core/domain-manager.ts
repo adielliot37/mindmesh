@@ -53,4 +53,18 @@ export class DomainManager {
     this.domains.set(name, { name, space_did: spaceDid, description });
     log.info({ name, spaceDid }, "domain added");
   }
+
+  removeDomain(name: string): boolean {
+    const existed = this.domains.delete(name);
+    if (existed) {
+      log.info({ name }, "domain removed");
+    }
+    return existed;
+  }
+
+  getDomainsByPrefix(prefix: string): DomainRecord[] {
+    return Array.from(this.domains.values()).filter((d) =>
+      d.name.startsWith(prefix)
+    );
+  }
 }

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "storacha-knowledge": {
+      "command": "npx",
+      "args": ["agent-knowledge-server"],
+      "env": {
+        "MCP_TRANSPORT_MODE": "stdio",
+        "STORACHA_PRIVATE_KEY": "${AGENT_KEY}",
+        "STORACHA_PROOF": "${AGENT_DELEGATION}",
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      }
+    }
+  }
+}

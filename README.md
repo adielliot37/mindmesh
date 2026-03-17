@@ -1,4 +1,4 @@
-# @storacha/agent-knowledge
+# mindmesh
 
 A shared knowledge layer for multi-agent systems, built on [Storacha Network](https://storacha.network). Provides content-addressed storage, UCAN-based access control, and semantic search across knowledge domains — exposed as MCP tools for any framework.
 
@@ -9,12 +9,6 @@ A shared knowledge layer for multi-agent systems, built on [Storacha Network](ht
 - **Content Integrity**: Every fragment is content-addressed (CIDs). Tampered data is detectable by hash mismatch.
 - **Semantic Search**: Embedding-based retrieval with cosine similarity ranking.
 - **MCP Interface**: Three tools (`knowledge_search`, `knowledge_ingest`, `knowledge_domains`) compatible with any MCP client.
-
-## Install
-
-```bash
-npm install @storacha/agent-knowledge
-```
 
 ## Quick Start
 
@@ -103,7 +97,7 @@ Layer 1: Storage             → Storacha (IPFS + Filecoin)
 ## Programmatic Usage
 
 ```typescript
-import { KnowledgeGraph, loadConfig } from "@storacha/agent-knowledge";
+import { KnowledgeGraph, loadConfig } from "./src/index.js";
 
 const config = loadConfig();
 const kg = new KnowledgeGraph(config);

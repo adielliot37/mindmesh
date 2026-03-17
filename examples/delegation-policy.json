@@ -1,0 +1,43 @@
+{
+  "agents": {
+    "research-agent": {
+      "did": "did:key:z6MkResearchAgentPublicKey",
+      "domains": {
+        "market-data": {
+          "abilities": ["space/blob/list", "upload/list"],
+          "expiration_hours": 24
+        },
+        "product-docs": {
+          "abilities": ["space/blob/list", "upload/list"],
+          "expiration_hours": 24
+        }
+      }
+    },
+    "support-agent": {
+      "did": "did:key:z6MkSupportAgentPublicKey",
+      "domains": {
+        "product-docs": {
+          "abilities": ["space/blob/list", "upload/list"],
+          "expiration_hours": 24
+        }
+      }
+    },
+    "ingestion-agent": {
+      "did": "did:key:z6MkIngestionAgentPublicKey",
+      "domains": {
+        "market-data": {
+          "abilities": ["space/blob/add", "upload/add", "space/index/add", "filecoin/offer", "space/blob/list"],
+          "expiration_hours": 1
+        },
+        "product-docs": {
+          "abilities": ["space/blob/add", "upload/add", "space/index/add", "filecoin/offer", "space/blob/list"],
+          "expiration_hours": 1
+        },
+        "customer-logs": {
+          "abilities": ["space/blob/add", "upload/add", "space/index/add", "filecoin/offer", "space/blob/list"],
+          "expiration_hours": 1
+        }
+      }
+    }
+  }
+}
